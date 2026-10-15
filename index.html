@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Chicken AR Experience</title>
+    <!-- Reliable A-Frame & AR.js CDN links -->
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+  </head>
+  <body style="margin: 0px; overflow: hidden;">
+
+    <!-- Tap Screen Overlay (Unlocks mobile audio permissions) -->
+    <div id="user-gesture" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); color: white; display: flex; justify-content: center; align-items: center; z-index: 9999; font-family: sans-serif;">
+      <h2>Tap Screen to Start AR</h2>
+    </div>
+
+    <a-scene 
+      embedded 
+      vr-mode-ui="enabled: false;" 
+      xr-mode-ui="enabled: false;"
+      arjs="sourceType: webcam; debugUIEnabled: false;">
+
+      <!-- Preload Custom Assets -->
+      <a-assets>
+      <!-- Force browser to look in current folder -->
+      <audio id="chicken-audio" src="./hiro.mp3" preload="auto"></audio>
+      <a-asset-item id="chicken-model" src="./chicken.glb"></a-asset-item>
+      </a-assets>
+
+      <!-- Target Marker (Hiro) -->
+      <a-marker preset="hiro" id="marker">
+  <!-- Test Cube: If this appears, your marker tracking is working -->
+  <a-box position="0 0.5 0" color="red" scale="0.2 0.2 0.2"></a-box>
+
+  <!-- 3D Chicken Model -->
+  <a-gltf-model 
+    src="./chicken.glb" 
+    position="0 0 0" 
+    scale="0.05 0.05 0.05">
+  </a-gltf-model>
+
+  <a-entity sound="src: #chicken-audio; autoplay: false"></a-entity>
+  </a-marker>
+
+      <a-entity camera></a-entity>
+    </a-scene>
+
+    <script>
+      // Unlock mobile audio on user tap
+      const gestureOverlay = document.querySelector('#user-gesture');
+      gestureOverlay.addEventListener('click', () => {
+        gestureOverlay.style.display = 'none';
+      });
+
+      window.addEventListener('load', () => {
+        const marker = document.querySelector('#marker');
+        const sound = document.querySelector('a-entity[sound]');
+
+        // Play hiro.mp3 when Hiro marker is scanned
+        marker.addEventListener('markerFound', () => {
+          if (sound && sound.components.sound) {
+            sound.components.sound.playSound();
+          }
+        });
+
+        // Pause audio when Hiro marker leaves camera view
+        marker.addEventListener('markerLost', () => {
+          if (sound && sound.components.sound) {
+            sound.components.sound.pauseSound();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
